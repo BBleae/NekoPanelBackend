@@ -29,17 +29,4 @@ public final class Database {
             e.printStackTrace();
         }
     }
-
-    public static String deviceToUser(final String device) {
-        final byte[] data = DatabaseSingleton.INSTANCE.get("nekoPanelDevice." + device);
-        return data == null ? null : Iq80DBFactory.asString(data);
-    }
-
-    public static void setDeviceToUser(final String device, final String user) {
-        DatabaseSingleton.INSTANCE.set("nekoPanelDevice." + device, user.getBytes());
-    }
-
-    public static void removeDeviceToUser(final String device) {
-        DatabaseSingleton.INSTANCE.delete("nekoPanelDevice." + device);
-    }
 }

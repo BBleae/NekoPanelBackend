@@ -1,14 +1,13 @@
 package cn.apisium.nekopanel;
 
 import cn.apisium.nekoessentials.utils.Pair;
-import cn.apisium.nekopanel.packets.PlayerActionPacket;
-import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.bukkit.BanList;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Statistic;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -28,8 +27,8 @@ import org.bukkit.plugin.java.annotation.permission.Permissions;
 import org.bukkit.plugin.java.annotation.plugin.*;
 import org.bukkit.plugin.java.annotation.plugin.author.Author;
 
-import java.lang.ref.SoftReference;
 import java.util.Date;
+import java.util.UUID;
 import java.util.WeakHashMap;
 
 @Plugin(name = "NekoPanel", version = "1.0")
@@ -42,9 +41,11 @@ import java.util.WeakHashMap;
 @Dependency("NekoEssentials")
 public final class Main extends JavaPlugin implements Listener {
     protected String listData = "";
-    protected WeakHashMap<Player, Pair<SoftReference<AckRequest>, String>> pendingRequests = new WeakHashMap<>();
+    protected String banListData = "";
+    protected String statusData = "";
+    protected WeakHashMap<Player, Pair<UUID, String>> pendingRequests = new WeakHashMap<>();
     protected cn.apisium.nekoessentials.Main ess;
-    private SocketIOServer server;
+    protected SocketIOServer server;
 
     @Override
     public void onEnable() {
@@ -70,8 +71,8 @@ public final class Main extends JavaPlugin implements Listener {
             final cn.apisium.nekopanel.Commands exec = new cn.apisium.nekopanel.Commands(this);
             cmd.setExecutor(exec);
             cmd.setTabCompleter(exec);
-            cmd.setUsage("搂e[鐢ㄦ埛涓績] 搂c鍛戒护鐢ㄦ硶閿欒!");
-            cmd.setPermissionMessage("搂e[鐢ㄦ埛涓績] 搂c浣犳病鏈夋潈闄愭潵鎵ц褰撳墠鎸囦护!");
+            cmd.setUsage("§e[用户中心] §c命令用法错误!");
+            cmd.setPermissionMessage("§e[用户中心] §c你没有权限来执行当前指令!");
             getServer().getPluginManager().registerEvents(this, this);
         });
     }
@@ -87,11 +88,11 @@ public final class Main extends JavaPlugin implements Listener {
             if (ess.afkPlayers.containsKey(it)) obj.addProperty("afk", true);
             json.add(obj);
         });
-        server.getBroadcastOperations().sendEvent("status", json.toString(), getServer().getTPS()[0], getServer().getMinecraftVersion());
+        statusData = json.toString();
+        server.getBroadcastOperations().sendEvent("status", statusData, getServer().getTPS()[0], getServer().getMinecraftVersion());
     }
 
     private void listTimer() {
-        final JsonObject json = new JsonObject();
         final JsonArray banList = new JsonArray();
         getServer().getBanList(BanList.Type.NAME).getBanEntries().forEach(it -> {
             final JsonObject obj = new JsonObject();
@@ -103,18 +104,18 @@ public final class Main extends JavaPlugin implements Listener {
             if (to != null) obj.addProperty("to", to.getTime());
             banList.add(obj);
         });
-        json.add("banList", banList);
+        banListData = banList.toString();
         final JsonArray players = new JsonArray();
         for (final OfflinePlayer it : getServer().getOfflinePlayers()) {
             final JsonObject obj = new JsonObject();
             obj.addProperty("name", it.getName());
             obj.addProperty("firstPlayed", it.getFirstPlayed());
             obj.addProperty("lastLogin", it.getLastLogin());
+            obj.addProperty("onlineTime", it.getStatistic(Statistic.PLAY_ONE_MINUTE));
             if (it.isOp()) obj.addProperty("isOp", true);
             players.add(obj);
         }
-        json.add("players", players);
-        listData = json.toString();
+        listData = players.toString();
     }
 
     @Override
@@ -126,21 +127,21 @@ public final class Main extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onJoin(final PlayerJoinEvent e) {
-        server.getBroadcastOperations().sendEvent("join", new PlayerActionPacket(e.getPlayer().getName()));
+        server.getBroadcastOperations().sendEvent("playerAction", "join", e.getPlayer().getName());
     }
 
     @EventHandler
     public void onQuit(final PlayerQuitEvent e) {
-        server.getBroadcastOperations().sendEvent("quit", new PlayerActionPacket(e.getPlayer().getName()));
+        server.getBroadcastOperations().sendEvent("playerAction", "quit", e.getPlayer().getName());
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onChat(final AsyncPlayerChatEvent e) {
-        server.getBroadcastOperations().sendEvent("chat", new PlayerActionPacket(e.getPlayer().getName(), e.getMessage()));
+        server.getBroadcastOperations().sendEvent("playerAction", "chat", e.getPlayer().getName(), e.getMessage());
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onDeath(final PlayerDeathEvent e) {
-        server.getBroadcastOperations().sendEvent("death", new PlayerActionPacket(e.getEntity().getName()));
+        server.getBroadcastOperations().sendEvent("playerAction", "death", e.getEntity().getName());
     }
 }

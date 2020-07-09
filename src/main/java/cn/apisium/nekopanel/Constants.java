@@ -10,11 +10,11 @@ import java.util.List;
 public final class Constants {
     private Constants() {}
 
-    public final static String HEADER = "搂b搂m                    搂r 搂e[鐢ㄦ埛涓績] 搂b搂m                    ";
+    public final static String HEADER = "§b§m                    §r §e[用户中心] §b§m                    ";
     public final static TextComponent[] LOGIN_BUTTONS = { new TextComponent("        "),
-            new TextComponent("[鎷掔粷鐧婚檰]"), new TextComponent("    "), new TextComponent("[纭鐧婚檰]") };
-    public final static String LOGIN_TIP = "  搂7璇风‘璁ゆ槸鏈汉鎿嶄綔鍚庡啀鐐瑰嚮涓婃柟鐨勭‘璁ゆ寜閽互鐧婚檰.";
-    public final static String FOOTER = "搂b搂m                                                       ";
+            new TextComponent("[拒绝登陆]"), new TextComponent("    "), new TextComponent("[确认登陆]") };
+    public final static String LOGIN_TIP = "  §7请确认是本人操作后再点击上方的确认按钮以登陆.";
+    public final static String FOOTER = "§b§m                                                       ";
 
     public final static List<String> COMMANDS = Arrays.asList("devices", "remove");
     public final static List<String> COMMANDS_ALL = Arrays.asList("confirm", "cancel", "devices", "remove");

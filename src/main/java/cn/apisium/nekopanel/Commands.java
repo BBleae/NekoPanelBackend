@@ -1,8 +1,7 @@
 package cn.apisium.nekopanel;
 
 import cn.apisium.nekoessentials.utils.Pair;
-import cn.apisium.nekopanel.packets.LoginRet;
-import com.corundumstudio.socketio.AckRequest;
+import com.corundumstudio.socketio.SocketIOClient;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -12,7 +11,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import java.lang.ref.SoftReference;
 import java.util.*;
 
 public final class Commands implements CommandExecutor, TabCompleter {
@@ -48,28 +46,26 @@ public final class Commands implements CommandExecutor, TabCompleter {
             }
             case "confirm":
             case "cancel": {
-                final Pair<SoftReference<AckRequest>, String> pair = main.pendingRequests.get(player);
+                final Pair<UUID, String> pair = main.pendingRequests.get(player);
                 if (pair == null) {
                     player.sendMessage("§e[用户中心] §c你目前没有任何验证请求!");
                     break;
                 }
-                final SoftReference<AckRequest> ref = pair.left;
                 main.pendingRequests.remove(player);
-                final AckRequest req = ref.get();
+                final SocketIOClient req = main.server.getClient(pair.left);
                 if (req == null) {
                     player.sendMessage("§e[用户中心] §c请求超时!");
                     break;
                 }
                 if (args[0].equals("cancel")) {
-                    req.sendAckData(new LoginRet("授权已被拒绝!"));
+                    req.sendEvent("login", "授权已被拒绝!");
                     player.sendMessage("§e[用户中心] §d你拒绝了授权!");
                 } else {
                     final HashMap<String, String> devices = Database.getUserDevices(uuid);
                     final String token = UUID.randomUUID().toString();
                     devices.put(token, pair.right);
                     Database.setUserDevices(uuid, devices);
-                    Database.setDeviceToUser(token, uuid);
-                    req.sendAckData(null, new LoginRet(token));
+                    req.sendEvent("login", false, token, uuid);
                     player.sendMessage("§e[用户中心] §a授权成功!");
                 }
                 break;
@@ -82,7 +78,6 @@ public final class Commands implements CommandExecutor, TabCompleter {
                     break;
                 }
                 Database.setUserDevices(uuid, devices);
-                Database.removeDeviceToUser(args[1]);
                 player.sendMessage("§e[用户中心] §a删除成功.");
             }
         }
