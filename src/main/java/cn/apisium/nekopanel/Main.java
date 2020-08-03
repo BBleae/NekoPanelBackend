@@ -85,7 +85,7 @@ public final class Main extends JavaPlugin implements Listener {
             obj.addProperty("name", it.getName());
             obj.addProperty("health", it.getHealth());
             obj.addProperty("food", it.getFoodLevel());
-            if (ess.afkPlayers.containsKey(it)) obj.addProperty("afk", true);
+            if (ess.isAfking(it)) obj.addProperty("afk", true);
             json.add(obj);
         });
         statusData = json.toString();

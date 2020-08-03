@@ -25,7 +25,7 @@ repositories {
 dependencies {
     compileOnly 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
     compileOnly 'com.destroystokyo.paper:paper-api:1.16.1-R0.1-SNAPSHOT'
-    compileOnly 'com.github.neko-craft:NekoEssentials:2fc222ca2d'
+    compileOnly 'com.github.neko-craft:NekoEssentials:4c311d4119'
 
     annotationProcessor 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
 
