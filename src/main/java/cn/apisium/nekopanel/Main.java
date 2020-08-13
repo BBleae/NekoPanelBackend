@@ -56,13 +56,20 @@ public final class Main extends JavaPlugin implements Listener {
         server = new SocketIOServer(config);
         try {
             new Handlers(this, server);
+            start();
         } catch (Exception e) {
             e.printStackTrace();
             server = null;
             setEnabled(false);
-            return;
         }
+    }
+
+    private void start() {
         server.startAsync().addListener(a -> {
+            if (!a.isSuccess()) {
+                start();
+                return;
+            }
             getServer().getScheduler().runTaskTimerAsynchronously(this, this::listTimer, 0, 5 * 60 * 20);
             getServer().getScheduler().runTaskTimerAsynchronously(this, this::statusTimer, 0, 5 * 20);
 
