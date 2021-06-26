@@ -13,18 +13,15 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-public final class Commands implements CommandExecutor, TabCompleter {
-    private final Main main;
-    Commands(final Main main) { this.main = main; }
+public record Commands(Main main) implements CommandExecutor, TabCompleter {
 
-    @SuppressWarnings("NullableProblems")
+    @SuppressWarnings({"NullableProblems", "deprecation"})
     @Override
     public boolean onCommand(final CommandSender sender, final Command command, final String label, final String[] args) {
-        if (args.length < 1 || !(sender instanceof Player)) return false;
-        final Player player = (Player) sender;
+        if (args.length < 1 || !(sender instanceof final Player player)) return false;
         final String uuid = player.getUniqueId().toString();
         switch (args[0]) {
-            case "devices": {
+            case "devices" -> {
                 final HashMap<String, String> devices = Database.getUserDevices(uuid);
                 if (devices.isEmpty()) {
                     player.sendMessage("§e[用户中心] §c你还没有在网页上登录!");
@@ -42,10 +39,8 @@ public final class Commands implements CommandExecutor, TabCompleter {
                     player.sendMessage(c0, new TextComponent(entry.getValue() + "  "), c1);
                 }
                 player.sendMessage(Constants.FOOTER);
-                break;
             }
-            case "confirm":
-            case "cancel": {
+            case "confirm", "cancel" -> {
                 final Pair<UUID, String> pair = main.pendingRequests.get(player);
                 if (pair == null) {
                     player.sendMessage("§e[用户中心] §c你目前没有任何验证请求!");
@@ -68,9 +63,8 @@ public final class Commands implements CommandExecutor, TabCompleter {
                     req.sendEvent("login", false, token, uuid);
                     player.sendMessage("§e[用户中心] §a授权成功!");
                 }
-                break;
             }
-            case "remove": {
+            case "remove" -> {
                 if (args.length < 2) return false;
                 final HashMap<String, String> devices = Database.getUserDevices(uuid);
                 if (devices.remove(args[1]) == null) {
@@ -84,11 +78,12 @@ public final class Commands implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    @SuppressWarnings({ "NullableProblems", "SuspiciousMethodCalls" })
+    @SuppressWarnings({"NullableProblems", "SuspiciousMethodCalls"})
     @Override
     public List<String> onTabComplete(final CommandSender sender, final Command command, final String alias, final String[] args) {
         switch (args.length) {
-            case 1: return main.pendingRequests.containsKey(sender) ? Constants.COMMANDS_ALL : Constants.COMMANDS;
+            case 1:
+                return main.pendingRequests.containsKey(sender) ? Constants.COMMANDS_ALL : Constants.COMMANDS;
             case 2:
                 if (sender instanceof Player && args[1].equals("remove"))
                     return new ArrayList<>(Database.getUserDevices(((Player) sender).getUniqueId().toString()).keySet());

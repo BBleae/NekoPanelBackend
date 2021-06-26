@@ -2,7 +2,6 @@ package cn.apisium.nekopanel;
 
 import cn.apisium.nekoessentials.utils.DatabaseSingleton;
 import cn.apisium.nekoessentials.utils.Serializer;
-import org.iq80.leveldb.impl.Iq80DBFactory;
 
 import java.io.IOException;
 import java.util.HashMap;

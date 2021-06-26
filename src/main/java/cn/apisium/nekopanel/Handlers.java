@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import java.util.HashMap;
 import java.util.UUID;
 
+@SuppressWarnings("deprecation")
 public final class Handlers {
     private final SocketIOServer server;
     private final Main main;

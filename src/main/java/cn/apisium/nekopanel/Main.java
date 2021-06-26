@@ -142,6 +142,7 @@ public final class Main extends JavaPlugin implements Listener {
         server.getBroadcastOperations().sendEvent("playerAction", "quit", e.getPlayer().getName());
     }
 
+    @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onChat(final AsyncPlayerChatEvent e) {
         server.getBroadcastOperations().sendEvent("playerAction", "chat", e.getPlayer().getName(), e.getMessage());

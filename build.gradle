@@ -9,8 +9,8 @@ version '1.0-SNAPSHOT'
 repositories {
     mavenCentral()
     maven {
-        name = 'destroystokyo-repo'
-        url = 'https://repo.destroystokyo.com/repository/maven-public/'
+        name = 'papermc'
+        url = 'https://papermc.io/repo/repository/maven-public/'
     }
     maven {
         name = 'sonatype'
@@ -24,18 +24,19 @@ repositories {
 
 dependencies {
     compileOnly 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
-    compileOnly 'com.destroystokyo.paper:paper-api:1.16.1-R0.1-SNAPSHOT'
-    compileOnly 'com.github.neko-craft:NekoEssentials:4c311d4119'
+    compileOnly 'io.papermc.paper:paper-api:1.17-R0.1-SNAPSHOT'
+    compileOnly 'com.github.Apisium:NekoEssentials:360360dc11'
 
     annotationProcessor 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
 
-    compile('com.corundumstudio.socketio:netty-socketio:1.7.18') {
+    implementation('com.corundumstudio.socketio:netty-socketio:1.7.19') {
         exclude group: 'org.slf4j'
     }
-}
 
-jar {
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    jar {
+        from {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+        }
     }
 }
