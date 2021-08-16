@@ -1,10 +1,20 @@
 package cn.apisium.nekopanel;
 
-import cn.apisium.nekoessentials.utils.Pair;
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.SocketIOServer;
+import cn.apisium.netty.engineio.EngineIoHandler;
+import cn.apisium.uniporter.Uniporter;
+import cn.apisium.uniporter.router.api.Route;
+import cn.apisium.uniporter.router.api.UniporterHttpHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
+import io.socket.engineio.server.EngineIoServer;
+import io.socket.socketio.server.SocketIoAdapter;
+import io.socket.socketio.server.SocketIoNamespace;
+import io.socket.socketio.server.SocketIoServer;
+import io.socket.socketio.server.SocketIoSocket;
 import org.bukkit.BanList;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Statistic;
@@ -27,9 +37,9 @@ import org.bukkit.plugin.java.annotation.permission.Permissions;
 import org.bukkit.plugin.java.annotation.plugin.*;
 import org.bukkit.plugin.java.annotation.plugin.author.Author;
 
-import java.util.Date;
-import java.util.UUID;
-import java.util.WeakHashMap;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.util.*;
 
 @Plugin(name = "NekoPanel", version = "1.0")
 @Description("An minecraft panel used in NekoCraft.")
@@ -39,37 +49,31 @@ import java.util.WeakHashMap;
 @Commands(@Command(name = "panel", permission = "neko.panel", desc = "A NekoPanel provided command."))
 @Permissions(@Permission(name = "neko.panel", defaultValue = PermissionDefault.TRUE))
 @Dependency("NekoEssentials")
-public final class Main extends JavaPlugin implements Listener {
+@Dependency("Uniporter")
+public final class Main extends JavaPlugin implements Listener, UniporterHttpHandler {
     protected String listData = "";
     protected String banListData = "";
     protected String statusData = "";
-    protected WeakHashMap<Player, Pair<UUID, String>> pendingRequests = new WeakHashMap<>();
+    protected WeakHashMap<Player, Map.Entry<WeakReference<SocketIoSocket
+            .ReceivedByLocalAcknowledgementCallback>, String>> pendingRequests = new WeakHashMap<>();
     protected cn.apisium.nekoessentials.Main ess;
-    protected SocketIOServer server;
+    protected SocketIoNamespace server;
+    private EngineIoServer engineIoServer;
+    protected Map<String, Set<SocketIoSocket>> mRoomSockets;
 
+    @SuppressWarnings("unchecked")
     @Override
     public void onEnable() {
         saveDefaultConfig();
         ess = (cn.apisium.nekoessentials.Main) getServer().getPluginManager().getPlugin("NekoEssentials");
-        final Configuration config = new Configuration();
-        config.setPort(getConfig().getInt("port", 9124));
-        server = new SocketIOServer(config);
+        engineIoServer = new EngineIoServer();
+        server = new SocketIoServer(engineIoServer).namespace("/");
         try {
-            new Handlers(this, server);
-            start();
-        } catch (Exception e) {
-            e.printStackTrace();
-            server = null;
-            setEnabled(false);
-        }
-    }
-
-    private void start() {
-        server.startAsync().addListener(a -> {
-            if (!a.isSuccess()) {
-                start();
-                return;
-            }
+            Field field = SocketIoAdapter.class.getDeclaredField("mRoomSockets");
+            field.setAccessible(true);
+            mRoomSockets = (Map<String, Set<SocketIoSocket>>) field.get(server.getAdapter());
+            Uniporter.registerHandler("NekoPanel", this, true);
+            Handlers.initHandlers(this, server);
             getServer().getScheduler().runTaskTimerAsynchronously(this, this::listTimer, 0, 5 * 60 * 20);
             getServer().getScheduler().runTaskTimerAsynchronously(this, this::statusTimer, 0, 5 * 20);
 
@@ -81,11 +85,14 @@ public final class Main extends JavaPlugin implements Listener {
             cmd.setUsage("§e[用户中心] §c命令用法错误!");
             cmd.setPermissionMessage("§e[用户中心] §c你没有权限来执行当前指令!");
             getServer().getPluginManager().registerEvents(this, this);
-        });
+        } catch (Throwable e) {
+            e.printStackTrace();
+            server = null;
+            setEnabled(false);
+        }
     }
 
     private void statusTimer() {
-        if (server.getAllClients().isEmpty()) return;
         final JsonArray json = new JsonArray();
         getServer().getOnlinePlayers().forEach(it -> {
             final JsonObject obj = new JsonObject();
@@ -96,7 +103,7 @@ public final class Main extends JavaPlugin implements Listener {
             json.add(obj);
         });
         statusData = json.toString();
-        server.getBroadcastOperations().sendEvent("status", statusData, getServer().getTPS()[0], getServer().getMinecraftVersion());
+        server.broadcast(null, "status", statusData, getServer().getTPS()[0], getServer().getMinecraftVersion());
     }
 
     private void listTimer() {
@@ -127,29 +134,45 @@ public final class Main extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        if (server == null) return;
-        server.stop();
-        server = null;
+        Uniporter.removeHandler("NekoMaid");
+        if (engineIoServer != null) engineIoServer.shutdown();
     }
 
     @EventHandler
     public void onJoin(final PlayerJoinEvent e) {
-        server.getBroadcastOperations().sendEvent("playerAction", "join", e.getPlayer().getName());
+        server.broadcast(null, "playerAction", "join", e.getPlayer().getName());
     }
 
     @EventHandler
     public void onQuit(final PlayerQuitEvent e) {
-        server.getBroadcastOperations().sendEvent("playerAction", "quit", e.getPlayer().getName());
+        pendingRequests.remove(e.getPlayer());
+        server.broadcast(null, "playerAction", "quit", e.getPlayer().getName());
     }
 
     @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onChat(final AsyncPlayerChatEvent e) {
-        server.getBroadcastOperations().sendEvent("playerAction", "chat", e.getPlayer().getName(), e.getMessage());
+        server.broadcast(null, "playerAction", "chat", e.getPlayer().getName(), e.getMessage());
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onDeath(final PlayerDeathEvent e) {
-        server.getBroadcastOperations().sendEvent("playerAction", "death", e.getEntity().getName());
+        server.broadcast(null, "playerAction", "death", e.getEntity().getName());
     }
+
+    @Override
+    public void handle(String path, Route route, ChannelHandlerContext context, FullHttpRequest request) {
+        if (route.isGzip()) context.pipeline().addLast(new HttpContentCompressor())
+                .addLast(new WebSocketServerCompressionHandler());
+        context.channel().pipeline().addLast(new EngineIoHandler(engineIoServer, null,
+                "ws://maid.neko-craft.com", 1024 * 1024 * 5) {
+            @Override
+            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+                if (getConfig().getBoolean("debug", false)) cause.printStackTrace();
+            }
+        });
+    }
+
+    @Override
+    public boolean needReFire() { return true; }
 }

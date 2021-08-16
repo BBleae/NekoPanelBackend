@@ -1,7 +1,6 @@
 package cn.apisium.nekopanel;
 
-import cn.apisium.nekoessentials.utils.Pair;
-import com.corundumstudio.socketio.SocketIOClient;
+import io.socket.socketio.server.SocketIoSocket;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -41,26 +40,27 @@ public record Commands(Main main) implements CommandExecutor, TabCompleter {
                 player.sendMessage(Constants.FOOTER);
             }
             case "confirm", "cancel" -> {
-                final Pair<UUID, String> pair = main.pendingRequests.get(player);
+                var pair = main.pendingRequests.get(player);
                 if (pair == null) {
                     player.sendMessage("§e[用户中心] §c你目前没有任何验证请求!");
                     break;
                 }
                 main.pendingRequests.remove(player);
-                final SocketIOClient req = main.server.getClient(pair.left);
-                if (req == null) {
+                var req = pair.getKey();
+                SocketIoSocket.ReceivedByLocalAcknowledgementCallback ack;
+                if (req == null || (ack = req.get()) == null) {
                     player.sendMessage("§e[用户中心] §c请求超时!");
                     break;
                 }
                 if (args[0].equals("cancel")) {
-                    req.sendEvent("login", "授权已被拒绝!");
+                    ack.sendAcknowledgement("login", "授权已被拒绝!");
                     player.sendMessage("§e[用户中心] §d你拒绝了授权!");
                 } else {
                     final HashMap<String, String> devices = Database.getUserDevices(uuid);
                     final String token = UUID.randomUUID().toString();
-                    devices.put(token, pair.right);
+                    devices.put(token, pair.getValue());
                     Database.setUserDevices(uuid, devices);
-                    req.sendEvent("login", false, token, uuid);
+                    ack.sendAcknowledgement("login", false, token, uuid);
                     player.sendMessage("§e[用户中心] §a授权成功!");
                 }
             }
