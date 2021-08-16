@@ -11,7 +11,6 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.socket.engineio.server.EngineIoServer;
-import io.socket.socketio.server.SocketIoAdapter;
 import io.socket.socketio.server.SocketIoNamespace;
 import io.socket.socketio.server.SocketIoServer;
 import io.socket.socketio.server.SocketIoSocket;
@@ -38,7 +37,6 @@ import org.bukkit.plugin.java.annotation.plugin.*;
 import org.bukkit.plugin.java.annotation.plugin.author.Author;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
 import java.util.*;
 
 @Plugin(name = "NekoPanel", version = "1.0")
@@ -59,9 +57,7 @@ public final class Main extends JavaPlugin implements Listener, UniporterHttpHan
     protected cn.apisium.nekoessentials.Main ess;
     protected SocketIoNamespace server;
     private EngineIoServer engineIoServer;
-    protected Map<String, Set<SocketIoSocket>> mRoomSockets;
 
-    @SuppressWarnings("unchecked")
     @Override
     public void onEnable() {
         saveDefaultConfig();
@@ -69,9 +65,6 @@ public final class Main extends JavaPlugin implements Listener, UniporterHttpHan
         engineIoServer = new EngineIoServer();
         server = new SocketIoServer(engineIoServer).namespace("/");
         try {
-            Field field = SocketIoAdapter.class.getDeclaredField("mRoomSockets");
-            field.setAccessible(true);
-            mRoomSockets = (Map<String, Set<SocketIoSocket>>) field.get(server.getAdapter());
             Uniporter.registerHandler("NekoPanel", this, true);
             Handlers.initHandlers(this, server);
             getServer().getScheduler().runTaskTimerAsynchronously(this, this::listTimer, 0, 5 * 60 * 20);

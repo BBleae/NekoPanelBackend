@@ -12,7 +12,10 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-public record Commands(Main main) implements CommandExecutor, TabCompleter {
+@SuppressWarnings("ClassCanBeRecord")
+public final class Commands implements CommandExecutor, TabCompleter {
+    private final Main main;
+    public Commands(Main main) { this.main = main; }
 
     @SuppressWarnings({"NullableProblems", "deprecation"})
     @Override
