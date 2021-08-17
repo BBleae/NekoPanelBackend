@@ -58,7 +58,7 @@ public final class Handlers {
                 var id = recordUUID[0] = UUID.fromString(uuid);
                 var player = main.getServer().getOfflinePlayer(id);
                 recordToken[0] = token;
-                ack.sendAcknowledgement(null, player.getName(), player.isBanned());
+                ack.sendAcknowledgement(false, player.getName(), player.isBanned());
             }).on("chat", args -> {
                 var ack = (SocketIoSocket.ReceivedByLocalAcknowledgementCallback) args[args.length - 1];
                 if (!(args[0] instanceof String text) || text.isEmpty()) {

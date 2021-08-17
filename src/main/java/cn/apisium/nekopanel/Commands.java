@@ -56,14 +56,14 @@ public final class Commands implements CommandExecutor, TabCompleter {
                     break;
                 }
                 if (args[0].equals("cancel")) {
-                    ack.sendAcknowledgement("login", "授权已被拒绝!");
+                    ack.sendAcknowledgement("授权已被拒绝!");
                     player.sendMessage("§e[用户中心] §d你拒绝了授权!");
                 } else {
                     final HashMap<String, String> devices = Database.getUserDevices(uuid);
                     final String token = UUID.randomUUID().toString();
                     devices.put(token, pair.getValue());
                     Database.setUserDevices(uuid, devices);
-                    ack.sendAcknowledgement("login", false, token, uuid);
+                    ack.sendAcknowledgement(false, token, uuid);
                     player.sendMessage("§e[用户中心] §a授权成功!");
                 }
             }
