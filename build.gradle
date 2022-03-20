@@ -1,11 +1,14 @@
+//file:noinspection GroovyAssignabilityCheck
 plugins {
     id 'java'
     id 'idea'
-    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-group 'cn.apisium.nekopanel'
+group 'studio.baka.neko.nekopanel'
 version '1.0-SNAPSHOT'
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
@@ -25,16 +28,16 @@ repositories {
 
 dependencies {
     compileOnly 'org.spigotmc:plugin-annotations:1.2.3-SNAPSHOT'
-    compileOnly 'io.papermc.paper:paper-api:1.17-R0.1-SNAPSHOT'
-    compileOnly 'com.github.Apisium:NekoEssentials:360360dc11'
+    compileOnly 'io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT'
+    compileOnly 'com.github.BBleae:NekoEssentials:0.0.2-fix-publishing-2'
     compileOnly 'com.github.Apisium:Uniporter:1.2.6-SNAPSHOT'
-    compileOnly 'io.netty:netty-all:4.1.65.Final'
+    compileOnly 'io.netty:netty-all:4.1.75.Final'
 
     implementation 'com.github.Apisium:netty-engine.io:03931aef8c'
-    implementation ('io.socket:engine.io-server:5.0.0') {
+    implementation ('io.socket:engine.io-server:6.0.1') {
         exclude group: 'com.google.code.gson'
     }
-    implementation ('io.socket:socket.io-server:3.0.1') {
+    implementation ('io.socket:socket.io-server:4.0.0') {
         exclude group: 'org.json'
         exclude group: 'com.squareup.okhttp3'
         exclude group: 'io.socket', module: 'engine.io-server'
@@ -46,12 +49,12 @@ dependencies {
 
 shadowJar {
     dependencies {
-        relocate('org.json', 'cn.apisium.nekomaid.libs.org.json')
-        relocate('javax.servlet', 'cn.apisium.nekomaid.libs.javax.servlet')
-        relocate('io.socket', 'cn.apisium.nekomaid.libs.io.socket')
+        relocate 'org.json', 'cn.apisium.nekomaid.libs.org.json'
+        relocate 'javax.servlet', 'cn.apisium.nekomaid.libs.javax.servlet'
+        relocate 'io.socket', 'cn.apisium.nekomaid.libs.io.socket'
     }
 
-    archiveClassifier.set('')
+    archiveClassifier.set ''
     minimize()
 }
-build.dependsOn(shadowJar)
+build.dependsOn shadowJar

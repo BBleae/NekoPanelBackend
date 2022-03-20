@@ -1,4 +1,4 @@
-package cn.apisium.nekopanel;
+package studio.baka.neko.nekopanel;
 
 import io.socket.socketio.server.SocketIoNamespace;
 import io.socket.socketio.server.SocketIoSocket;
@@ -12,34 +12,36 @@ import java.util.UUID;
 
 @SuppressWarnings("deprecation")
 public final class Handlers {
-    private Handlers() { }
+    private Handlers() {
+    }
+
     public static void initHandlers(final Main main, final SocketIoNamespace server) {
         server.on("connection", args0 -> {
             var io = (SocketIoSocket) args0[0];
-            UUID[] recordUUID = new UUID[] { null };
-            String[] recordToken = new String[] { null };
+            UUID[] recordUUID = new UUID[]{null};
+            String[] recordToken = new String[]{null};
             io.on("login", args -> {
                 var ack = (SocketIoSocket.ReceivedByLocalAcknowledgementCallback) args[args.length - 1];
                 if (args.length != 3 || !(args[0] instanceof String name) || !(args[1] instanceof String device)) {
-                    ack.sendAcknowledgement("´íÎóµÄÊı¾İ!");
+                    ack.sendAcknowledgement("é”™è¯¯çš„æ•°æ®!");
                     return;
                 }
                 if (device.length() > 16) {
-                    ack.sendAcknowledgement("Éè±¸Ãû¹ı³¤!");
+                    ack.sendAcknowledgement("è®¾å¤‡åè¿‡é•¿!");
                     return;
                 }
                 final Player player = main.getServer().getPlayerExact(name);
                 if (player == null) {
-                    ack.sendAcknowledgement("ÄãÃ»ÓĞ½øÈëÓÎÏ·ÖĞ!");
+                    ack.sendAcknowledgement("ä½ æ²¡æœ‰è¿›å…¥æ¸¸æˆä¸­!");
                     return;
                 }
                 if (Database.getUserDevices(player.getUniqueId().toString()).size() > 2) {
-                    ack.sendAcknowledgement("Éè±¸ÊıÁ¿³¬¹ı3¸ö, Çë½øÈëÓÎÏ·ÖĞÊäÈë /panel devices À´É¾³ı!");
+                    ack.sendAcknowledgement("è®¾å¤‡æ•°é‡è¶…è¿‡3ä¸ª, è¯·è¿›å…¥æ¸¸æˆä¸­è¾“å…¥ /panel devices æ¥åˆ é™¤!");
                     return;
                 }
                 main.pendingRequests.put(player, Map.entry(new WeakReference<>(ack), device));
                 player.sendMessage(Constants.HEADER);
-                player.sendMessage("  ¡ìdÊÕµ½ĞÂµÄµÇÂ½Éè±¸ÇëÇó ¡ì7(" + device + "):");
+                player.sendMessage("  Â§dæ”¶åˆ°æ–°çš„ç™»é™†è®¾å¤‡è¯·æ±‚ Â§7(" + device + "):");
                 player.sendMessage(Constants.LOGIN_BUTTONS);
                 player.sendMessage(Constants.LOGIN_TIP);
                 player.sendMessage(Constants.FOOTER);
@@ -47,12 +49,12 @@ public final class Handlers {
                 var ack = (SocketIoSocket.ReceivedByLocalAcknowledgementCallback) args[args.length - 1];
                 if (args.length != 3 || !(args[0] instanceof String uuid) || !(args[1] instanceof String token) ||
                         token.length() != 36 || uuid.length() != 36) {
-                    ack.sendAcknowledgement("´íÎóµÄÊı¾İ!");
+                    ack.sendAcknowledgement("é”™è¯¯çš„æ•°æ®!");
                     return;
                 }
                 final HashMap<String, String> user = Database.getUserDevices(uuid);
                 if (!user.containsKey(token)) {
-                    ack.sendAcknowledgement("µ±Ç°TokenÒÑÊ§Ğ§, ÇëÖØĞÂµÇÂ¼!");
+                    ack.sendAcknowledgement("å½“å‰Tokenå·²å¤±æ•ˆ, è¯·é‡æ–°ç™»å½•!");
                     return;
                 }
                 var id = recordUUID[0] = UUID.fromString(uuid);
@@ -62,20 +64,20 @@ public final class Handlers {
             }).on("chat", args -> {
                 var ack = (SocketIoSocket.ReceivedByLocalAcknowledgementCallback) args[args.length - 1];
                 if (!(args[0] instanceof String text) || text.isEmpty()) {
-                    ack.sendAcknowledgement("ÁÄÌìÎÄ±¾Îª¿Õ!");
+                    ack.sendAcknowledgement("èŠå¤©æ–‡æœ¬ä¸ºç©º!");
                     return;
                 }
                 if (recordUUID[0] == null) {
-                    ack.sendAcknowledgement("Äã»¹Ã»ÓĞµÇÂ¼!");
+                    ack.sendAcknowledgement("ä½ è¿˜æ²¡æœ‰ç™»å½•!");
                     return;
                 }
                 var player = main.getServer().getOfflinePlayer(recordUUID[0]);
                 if (player.isBanned() || main.ess.mutedPlayers.contains(recordUUID[0].toString())) {
-                    ack.sendAcknowledgement("ÄãµÄÕËºÅÒÑ±»·â½û»ò±»½ûÑÔ!");
+                    ack.sendAcknowledgement("ä½ çš„è´¦å·å·²è¢«å°ç¦æˆ–è¢«ç¦è¨€!");
                     return;
                 }
                 final String name = player.getName(), msg = ChatColor.stripColor(text);
-                main.getServer().broadcastMessage("¡ì7[ÍøÒ³] ¡ìf" + name + "¡ì7: " + msg);
+                main.getServer().broadcastMessage("Â§7[ç½‘é¡µ] Â§f" + name + "Â§7: " + msg);
                 server.broadcast(null, "playerAction", "chat", name, msg);
                 ack.sendAcknowledgement();
             }).on("list", args -> ((SocketIoSocket.ReceivedByLocalAcknowledgementCallback) args[args.length - 1])
@@ -85,13 +87,13 @@ public final class Handlers {
             ).on("quit", args -> {
                 var ack = (SocketIoSocket.ReceivedByLocalAcknowledgementCallback) args[args.length - 1];
                 if (recordUUID[0] == null) {
-                    ack.sendAcknowledgement("Äã»¹Ã»ÓĞµÇÂ¼!");
+                    ack.sendAcknowledgement("ä½ è¿˜æ²¡æœ‰ç™»å½•!");
                     return;
                 }
                 final String uuid = recordUUID[0].toString(), token = recordToken[0];
                 final HashMap<String, String> devices = Database.getUserDevices(uuid);
                 if (devices.remove(token) == null) {
-                    ack.sendAcknowledgement("¡ìe[ÓÃ»§ÖĞĞÄ] ¡ìcµ±Ç°Éè±¸²»´æÔÚ!");
+                    ack.sendAcknowledgement("Â§e[ç”¨æˆ·ä¸­å¿ƒ] Â§cå½“å‰è®¾å¤‡ä¸å­˜åœ¨!");
                     return;
                 }
                 Database.setUserDevices(uuid, devices);

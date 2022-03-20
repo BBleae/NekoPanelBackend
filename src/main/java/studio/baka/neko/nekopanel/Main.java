@@ -1,4 +1,4 @@
-package cn.apisium.nekopanel;
+package studio.baka.neko.nekopanel;
 
 import cn.apisium.netty.engineio.EngineIoHandler;
 import cn.apisium.uniporter.Uniporter;
@@ -14,6 +14,7 @@ import io.socket.engineio.server.EngineIoServer;
 import io.socket.socketio.server.SocketIoNamespace;
 import io.socket.socketio.server.SocketIoServer;
 import io.socket.socketio.server.SocketIoSocket;
+import net.kyori.adventure.text.Component;
 import org.bukkit.BanList;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Statistic;
@@ -33,35 +34,40 @@ import org.bukkit.plugin.java.annotation.command.Commands;
 import org.bukkit.plugin.java.annotation.dependency.Dependency;
 import org.bukkit.plugin.java.annotation.permission.Permission;
 import org.bukkit.plugin.java.annotation.permission.Permissions;
-import org.bukkit.plugin.java.annotation.plugin.*;
+import org.bukkit.plugin.java.annotation.plugin.ApiVersion;
+import org.bukkit.plugin.java.annotation.plugin.Description;
+import org.bukkit.plugin.java.annotation.plugin.Plugin;
+import org.bukkit.plugin.java.annotation.plugin.Website;
 import org.bukkit.plugin.java.annotation.plugin.author.Author;
 
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 @Plugin(name = "NekoPanel", version = "1.0")
 @Description("An minecraft panel used in NekoCraft.")
 @Author("Shirasawa")
 @Website("https://apisium.cn")
-@ApiVersion(ApiVersion.Target.v1_13)
+@ApiVersion(ApiVersion.Target.v1_18)
 @Commands(@Command(name = "panel", permission = "neko.panel", desc = "A NekoPanel provided command."))
 @Permissions(@Permission(name = "neko.panel", defaultValue = PermissionDefault.TRUE))
 @Dependency("NekoEssentials")
 @Dependency("Uniporter")
 public final class Main extends JavaPlugin implements Listener, UniporterHttpHandler {
-    protected String listData = "";
-    protected String banListData = "";
-    protected String statusData = "";
-    protected WeakHashMap<Player, Map.Entry<WeakReference<SocketIoSocket
+    String listData = "";
+    String banListData = "";
+    String statusData = "";
+    WeakHashMap<Player, Map.Entry<WeakReference<SocketIoSocket
             .ReceivedByLocalAcknowledgementCallback>, String>> pendingRequests = new WeakHashMap<>();
-    protected cn.apisium.nekoessentials.Main ess;
-    protected SocketIoNamespace server;
+    studio.baka.neko.nekoessentials.Main ess;
+    private SocketIoNamespace server;
     private EngineIoServer engineIoServer;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        ess = (cn.apisium.nekoessentials.Main) getServer().getPluginManager().getPlugin("NekoEssentials");
+        ess = (studio.baka.neko.nekoessentials.Main) getServer().getPluginManager().getPlugin("NekoEssentials");
         engineIoServer = new EngineIoServer();
         server = new SocketIoServer(engineIoServer).namespace("/");
         try {
@@ -72,11 +78,11 @@ public final class Main extends JavaPlugin implements Listener, UniporterHttpHan
 
             final PluginCommand cmd = getServer().getPluginCommand("panel");
             assert cmd != null;
-            final cn.apisium.nekopanel.Commands exec = new cn.apisium.nekopanel.Commands(this);
+            final studio.baka.neko.nekopanel.Commands exec = new studio.baka.neko.nekopanel.Commands(this);
             cmd.setExecutor(exec);
             cmd.setTabCompleter(exec);
-            cmd.setUsage("§e[用户中心] §c命令用法错误!");
-            cmd.setPermissionMessage("§e[用户中心] §c你没有权限来执行当前指令!");
+            cmd.setUsage("搂e[鐢ㄦ埛涓績] 搂c鍛戒护鐢ㄦ硶閿欒!");
+            cmd.permissionMessage(Component.text("搂e[鐢ㄦ埛涓績] 搂c浣犳病鏈夋潈闄愭潵鎵ц褰撳墠鎸囦护!"));
             getServer().getPluginManager().registerEvents(this, this);
         } catch (Throwable e) {
             e.printStackTrace();
@@ -167,5 +173,7 @@ public final class Main extends JavaPlugin implements Listener, UniporterHttpHan
     }
 
     @Override
-    public boolean needReFire() { return true; }
+    public boolean needReFire() {
+        return true;
+    }
 }

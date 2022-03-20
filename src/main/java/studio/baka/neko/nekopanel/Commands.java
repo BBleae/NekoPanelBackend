@@ -1,9 +1,9 @@
-package cn.apisium.nekopanel;
+package studio.baka.neko.nekopanel;
 
 import io.socket.socketio.server.SocketIoSocket;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,9 +15,12 @@ import java.util.*;
 @SuppressWarnings("ClassCanBeRecord")
 public final class Commands implements CommandExecutor, TabCompleter {
     private final Main main;
-    public Commands(Main main) { this.main = main; }
 
-    @SuppressWarnings({"NullableProblems", "deprecation"})
+    public Commands(Main main) {
+        this.main = main;
+    }
+
+    @SuppressWarnings({"NullableProblems"})
     @Override
     public boolean onCommand(final CommandSender sender, final Command command, final String label, final String[] args) {
         if (args.length < 1 || !(sender instanceof final Player player)) return false;
@@ -26,56 +29,55 @@ public final class Commands implements CommandExecutor, TabCompleter {
             case "devices" -> {
                 final HashMap<String, String> devices = Database.getUserDevices(uuid);
                 if (devices.isEmpty()) {
-                    player.sendMessage("¡ìe[ÓÃ»§ÖĞĞÄ] ¡ìcÄã»¹Ã»ÓĞÔÚÍøÒ³ÉÏµÇÂ¼!");
+                    player.sendMessage("Â§e[ç”¨æˆ·ä¸­å¿ƒ] Â§cä½ è¿˜æ²¡æœ‰åœ¨ç½‘é¡µä¸Šç™»å½•!");
                     break;
                 }
                 player.sendMessage(Constants.HEADER);
-                player.sendMessage("  ¡ìdÉè±¸ÁĞ±í:");
+                player.sendMessage("  Â§dè®¾å¤‡åˆ—è¡¨:");
                 int i = 0;
                 for (final Map.Entry<String, String> entry : devices.entrySet()) {
-                    final TextComponent c0 = new TextComponent("  " + ++i + ". "),
-                            c1 = new TextComponent("[É¾³ıÉè±¸]");
-                    c0.setColor(ChatColor.GRAY);
-                    c1.setColor(ChatColor.RED);
-                    c1.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/panel remove " + entry.getKey()));
-                    player.sendMessage(c0, new TextComponent(entry.getValue() + "  "), c1);
+                    final Component msg = Component.text("  " + ++i + ". ").color(TextColor.color(0xAAAAAA))
+                            .append(Component.text(entry.getValue() + "  ")
+                                    .append(Component.text("[åˆ é™¤è®¾å¤‡]").color(TextColor.color(0xFF5555)).clickEvent(ClickEvent.runCommand("/panel remove " + entry.getKey()))));
+
+                    player.sendMessage(msg);
                 }
                 player.sendMessage(Constants.FOOTER);
             }
             case "confirm", "cancel" -> {
                 var pair = main.pendingRequests.get(player);
                 if (pair == null) {
-                    player.sendMessage("¡ìe[ÓÃ»§ÖĞĞÄ] ¡ìcÄãÄ¿Ç°Ã»ÓĞÈÎºÎÑéÖ¤ÇëÇó!");
+                    player.sendMessage("Â§e[ç”¨æˆ·ä¸­å¿ƒ] Â§cä½ ç›®å‰æ²¡æœ‰ä»»ä½•éªŒè¯è¯·æ±‚!");
                     break;
                 }
                 main.pendingRequests.remove(player);
                 var req = pair.getKey();
                 SocketIoSocket.ReceivedByLocalAcknowledgementCallback ack;
                 if (req == null || (ack = req.get()) == null) {
-                    player.sendMessage("¡ìe[ÓÃ»§ÖĞĞÄ] ¡ìcÇëÇó³¬Ê±!");
+                    player.sendMessage("Â§e[ç”¨æˆ·ä¸­å¿ƒ] Â§cè¯·æ±‚è¶…æ—¶!");
                     break;
                 }
                 if (args[0].equals("cancel")) {
-                    ack.sendAcknowledgement("ÊÚÈ¨ÒÑ±»¾Ü¾ø!");
-                    player.sendMessage("¡ìe[ÓÃ»§ÖĞĞÄ] ¡ìdÄã¾Ü¾øÁËÊÚÈ¨!");
+                    ack.sendAcknowledgement("æˆæƒå·²è¢«æ‹’ç»!");
+                    player.sendMessage("Â§e[ç”¨æˆ·ä¸­å¿ƒ] Â§dä½ æ‹’ç»äº†æˆæƒ!");
                 } else {
                     final HashMap<String, String> devices = Database.getUserDevices(uuid);
                     final String token = UUID.randomUUID().toString();
                     devices.put(token, pair.getValue());
                     Database.setUserDevices(uuid, devices);
                     ack.sendAcknowledgement(false, token, uuid);
-                    player.sendMessage("¡ìe[ÓÃ»§ÖĞĞÄ] ¡ìaÊÚÈ¨³É¹¦!");
+                    player.sendMessage("Â§e[ç”¨æˆ·ä¸­å¿ƒ] Â§aæˆæƒæˆåŠŸ!");
                 }
             }
             case "remove" -> {
                 if (args.length < 2) return false;
                 final HashMap<String, String> devices = Database.getUserDevices(uuid);
                 if (devices.remove(args[1]) == null) {
-                    player.sendMessage("¡ìe[ÓÃ»§ÖĞĞÄ] ¡ìcµ±Ç°Éè±¸²»´æÔÚ!");
+                    player.sendMessage("Â§e[ç”¨æˆ·ä¸­å¿ƒ] Â§cå½“å‰è®¾å¤‡ä¸å­˜åœ¨!");
                     break;
                 }
                 Database.setUserDevices(uuid, devices);
-                player.sendMessage("¡ìe[ÓÃ»§ÖĞĞÄ] ¡ìaÉ¾³ı³É¹¦.");
+                player.sendMessage("Â§e[ç”¨æˆ·ä¸­å¿ƒ] Â§aåˆ é™¤æˆåŠŸ.");
             }
         }
         return true;
