@@ -32,6 +32,6 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: build/libs/NekoPanelBackend-1.0-SNAPSHOT.jar
-        asset_name: NekoPanelBackend-1.0-SNAPSHOT.jar
+        file: build/libs/NekoPanelBackend-1.0.1-SNAPSHOT.jar
+        asset_name: NekoPanelBackend-1.0.1-SNAPSHOT.jar
         tag: ${{ github.ref }}

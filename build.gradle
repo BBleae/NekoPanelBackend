@@ -6,7 +6,7 @@ plugins {
 }
 
 group 'studio.baka.neko.nekopanel'
-version '1.0-SNAPSHOT'
+version '1.0.1-SNAPSHOT'
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 

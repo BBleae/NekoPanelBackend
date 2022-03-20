@@ -45,7 +45,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-@Plugin(name = "NekoPanel", version = "1.0")
+@Plugin(name = "NekoPanel", version = "1.0.1")
 @Description("An minecraft panel used in NekoCraft.")
 @Author("Shirasawa")
 @Website("https://apisium.cn")
