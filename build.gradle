@@ -34,10 +34,10 @@ dependencies {
     compileOnly 'io.netty:netty-all:4.1.75.Final'
 
     implementation 'com.github.Apisium:netty-engine.io:03931aef8c'
-    implementation ('io.socket:engine.io-server:6.0.1') {
+    implementation ('io.socket:engine.io-server:5.0.1') {
         exclude group: 'com.google.code.gson'
     }
-    implementation ('io.socket:socket.io-server:4.0.0') {
+    implementation ('io.socket:socket.io-server:3.0.2') {
         exclude group: 'org.json'
         exclude group: 'com.squareup.okhttp3'
         exclude group: 'io.socket', module: 'engine.io-server'
@@ -49,9 +49,9 @@ dependencies {
 
 shadowJar {
     dependencies {
-        relocate 'org.json', 'cn.apisium.nekomaid.libs.org.json'
-        relocate 'javax.servlet', 'cn.apisium.nekomaid.libs.javax.servlet'
-        relocate 'io.socket', 'cn.apisium.nekomaid.libs.io.socket'
+        relocate 'org.json', 'studio.baka.neko.libs.org.json'
+        relocate 'javax.servlet', 'studio.baka.neko.libs.javax.servlet'
+        relocate 'io.socket', 'studio.baka.neko.libs.io.socket'
     }
 
     archiveClassifier.set ''

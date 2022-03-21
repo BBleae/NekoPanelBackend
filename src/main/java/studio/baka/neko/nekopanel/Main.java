@@ -133,7 +133,7 @@ public final class Main extends JavaPlugin implements Listener, UniporterHttpHan
 
     @Override
     public void onDisable() {
-        Uniporter.removeHandler("NekoMaid");
+        Uniporter.removeHandler("NekoPanel");
         if (engineIoServer != null) engineIoServer.shutdown();
     }
 
