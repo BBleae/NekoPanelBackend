@@ -120,6 +120,7 @@ public final class Main extends JavaPlugin implements Listener, UniporterHttpHan
         banListData = banList.toString();
         final JsonArray players = new JsonArray();
         for (final OfflinePlayer it : getServer().getOfflinePlayers()) {
+            if (it.getName() == null) continue;
             final JsonObject obj = new JsonObject();
             obj.addProperty("name", it.getName());
             obj.addProperty("firstPlayed", it.getFirstPlayed());
